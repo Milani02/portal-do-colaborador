@@ -35,3 +35,6 @@ dist-ssr
 /.claude/
 *.xlsx
 DOCUMENTACAO-PORTAL.md
+CLAUDE.md
+take_screenshot.cjs
+*.sql
