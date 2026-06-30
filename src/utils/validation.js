@@ -48,14 +48,6 @@ export function validateMotivo(motivo) {
   return null;
 }
 
-export function validateSugestao(sugestao) {
-  if (!sugestao || typeof sugestao !== 'string') return 'Mensagem é obrigatória.';
-  const trimmed = sugestao.trim();
-  if (trimmed.length < 10) return 'Mensagem deve ter pelo menos 10 caracteres.';
-  if (trimmed.length > 2000) return 'Mensagem não pode ultrapassar 2000 caracteres.';
-  return null;
-}
-
 export function validateSetor(setor) {
   if (!setor || typeof setor !== 'string') return 'Setor é obrigatório.';
   const trimmed = setor.trim();

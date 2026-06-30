@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   motion, AnimatePresence,
   useMotionValue, useSpring, useTransform, useMotionTemplate,
@@ -309,6 +309,10 @@ export default function Login() {
                 variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.5 } } }}
               >
                 Acesso restrito · contas criadas pelo administrador
+                <br />
+                <Link to="/privacidade" style={{ color: 'inherit', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: '2px' }}>
+                  Política de Privacidade
+                </Link>
               </motion.p>
 
             </motion.div>

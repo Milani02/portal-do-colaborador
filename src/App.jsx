@@ -4,7 +4,9 @@ import AdminDashboard from './AdminDashboard';
 import RhDashboard from './RhDashboard';
 import GestorDashboard from './GestorDashboard';
 import ColaboradorDashboard from './ColaboradorDashboard';
+import PrivacyPolicy from './PrivacyPolicy';
 import Toaster from './components/Toast';
+import SiteFooter from './components/SiteFooter';
 import ErrorBoundary from './components/ErrorBoundary';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -20,8 +22,10 @@ function App() {
             <Route path="/rh" element={<RhDashboard />} />
             <Route path="/gestor" element={<GestorDashboard />} />
             <Route path="/colaborador" element={<ColaboradorDashboard />} />
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <SiteFooter />
         </BrowserRouter>
       </TooltipProvider>
     </ErrorBoundary>

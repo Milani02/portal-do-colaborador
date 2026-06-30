@@ -117,13 +117,14 @@ export default function RhDashboard() {
       doc.setFontSize(9);
       doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 22);
       autoTable(doc, {
-        head: [['Data', 'Setor', 'Colaborador', 'Tipo', 'Motivo', 'Aprov. Gestor', 'Ação', 'Status RH', 'Obs. RH', 'Atestado']],
+        head: [['Data', 'Setor', 'Colaborador', 'Tipo', 'Motivo', 'Gestor', 'Aprov. Gestor', 'Ação', 'Status RH', 'Obs. RH', 'Atestado']],
         body: filtradas.map((o) => [
           shortDate(o.data_hora),
           o.setor || '-',
           o.colaborador?.nome_completo || '-',
           o.tipo || '-',
           (o.motivo || '').substring(0, 40),
+          o.status_gestor !== 'pendente' ? (o.gestor?.nome_completo || '-') : '-',
           (o.status_gestor || '-').toUpperCase(),
           (o.acao_gestor || '-').toUpperCase(),
           (o.status_rh || '-').toUpperCase(),
@@ -338,6 +339,11 @@ export default function RhDashboard() {
                               compact
                             />}
                           {oco.status_gestor === 'reprovado' && <StatusBadge status="reprovado" label="Reprov." icon={XCircle} compact />}
+                          {oco.status_gestor !== 'pendente' && oco.gestor?.nome_completo && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.25rem' }}>
+                              {oco.gestor.nome_completo}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           {oco.status_rh === 'recebido'
