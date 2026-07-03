@@ -218,7 +218,7 @@ export default function PrivacyPolicy() {
           }}>
             <div><strong>E-mail:</strong> contato@biodinamica.com.br</div>
             <div><strong>Telefone:</strong> (43) 3178-7000</div>
-            <div><strong>Endereço:</strong> Rua Ronat Walter Sodré, 4350 — Parque Industrial IV, Ibiporã/PR</div>
+            <div><strong>Endereço:</strong> Rua Ronat Walter Sodré, 4350 — Setor 3, Ibiporã/PR</div>
           </div>
         </Section>
 
