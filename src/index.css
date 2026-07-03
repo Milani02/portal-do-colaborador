@@ -1031,14 +1031,97 @@ select.input-vision { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
   .page-title { font-size: 2rem; }
   .app-container { padding: 1.25rem 1rem 5rem; }
   .vision-card { padding: 1.25rem 1rem; border-radius: var(--radius-md); }
-  .stat-grid { grid-template-columns: repeat(2, 1fr); }
-  .filter-container { flex-direction: column; align-items: stretch; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .filter-container { flex-direction: column; align-items: stretch; gap: 0.65rem; padding: 0.85rem; }
   .filter-container > div, .filter-container input, .filter-container button { width: 100% !important; }
+  /* Alvos de toque confortáveis nos filtros (mín. 44px) */
+  .filter-container input,
+  .filter-container [data-slot="button"] { min-height: 44px; }
   .tab-item { padding: 0.6rem 1rem; font-size: 0.8rem; }
+
+  /* Tabelas viram cartões empilhados — elimina o scroll horizontal */
+  .table-container,
+  .table-container [data-slot="table-container"] { overflow-x: visible; }
+  .table-container table { display: block; }
+  .table-container table thead { display: none; }
+  .table-container table tbody { display: flex; flex-direction: column; gap: 0.9rem; }
+  .table-container table tbody tr,
+  .table-container table tbody tr:nth-child(even) {
+    display: flex; flex-direction: column;
+    background: rgba(255,255,255,0.92) !important;
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 3px 10px rgba(0,0,0,0.03);
+  }
+  .table-container table tbody td {
+    display: block;
+    border-bottom: 1px dashed rgba(0,0,0,0.06);
+    padding: 0.65rem 0;
+    max-width: none !important;
+    white-space: normal !important;
+  }
+  .table-container table tbody tr td:last-child { border-bottom: none; }
+  .table-container table tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+  /* Motivo completo no cartão (sem reticências) */
+  .table-container table tbody td[data-label] > div[title] {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+  /* Botões de decisão fáceis de tocar e bem distribuídos */
+  .table-container table tbody td [data-slot="button"] {
+    min-height: 44px;
+    flex: 1 1 auto;
+  }
+
+  /* Cartões recolhidos por padrão: só colaborador, data e status.
+     Toque expande para ver motivo, observações e ações. */
+  .oco-row { cursor: pointer; position: relative; }
+  .oco-row::after {
+    content: '';
+    position: absolute;
+    right: 1.15rem; top: 1.35rem;
+    width: 9px; height: 9px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+    pointer-events: none;
+  }
+  .oco-row[data-collapsed="false"]::after {
+    transform: rotate(-135deg);
+    top: 1.55rem;
+  }
+  .oco-row[data-collapsed="true"] {
+    padding: 0.8rem 2.5rem 0.8rem 1rem;
+  }
+  .oco-row[data-collapsed="true"] td {
+    border-bottom: none;
+    padding: 0.12rem 0;
+  }
+  .oco-row[data-collapsed="true"] td[data-label]::before { content: none; }
+  .oco-row[data-collapsed="true"] td[data-label="Colaborador"] { order: -1; }
+  .oco-row[data-collapsed="true"] td[data-label="Tipo"],
+  .oco-row[data-collapsed="true"] td[data-label="Motivo"],
+  .oco-row[data-collapsed="true"] td[data-label="Setor"],
+  .oco-row[data-collapsed="true"] td[data-label="Ação"],
+  .oco-row[data-collapsed="true"] td[data-label="Ação / Observação"],
+  .oco-row[data-collapsed="true"] td[data-label="Decisão"] { display: none; }
 }
 
 @media (max-width: 480px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-card { padding: 1.1rem 1.15rem 1rem; }
   .dark-glass-card { padding: 2rem 1.5rem; }
 }
 

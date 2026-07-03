@@ -19,3 +19,10 @@ export function exactDatetime(dateStr) {
 export function shortDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('pt-BR');
 }
+
+export function shortDatetime(dateStr) {
+  const d = new Date(dateStr);
+  const data = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${data} ${hora}`;
+}

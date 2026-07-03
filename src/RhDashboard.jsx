@@ -13,7 +13,7 @@ import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
 import { toast } from './utils/toast';
-import { relativeDate, exactDatetime, shortDate } from './utils/dateUtils';
+import { relativeDate, exactDatetime, shortDate, shortDatetime } from './utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -54,7 +54,14 @@ export default function RhDashboard() {
   const [obsRhTexto, setObsRhTexto] = useState({});
   const [expandidoId, setExpandidoId] = useState(null);
   const [page, setPage] = useState(1);
+  const [cardAbertoId, setCardAbertoId] = useState(null);
   const cienteRefs = useRef({});
+
+  // Mobile: cartões recolhidos por padrão; toque expande (sem efeito no desktop).
+  const toggleCard = (e, id) => {
+    if (e.target.closest('button, a, input, textarea, [role="combobox"]')) return;
+    setCardAbertoId(prev => (prev === id ? null : id));
+  };
 
   const fetchOcorrencias = useCallback(async () => {
     if (!perfil?.id) return;
@@ -290,29 +297,40 @@ export default function RhDashboard() {
                     <SkeletonTableRows cols={8} rows={6} />
                   ) : (
                     paginados.map((oco) => (
-                      <TableRow key={oco.id}>
-                        <TableCell style={{ fontWeight: '700', whiteSpace: 'nowrap', color: 'var(--text-main)' }}>
+                      <TableRow
+                        key={oco.id}
+                        className="oco-row"
+                        data-collapsed={cardAbertoId === oco.id ? 'false' : 'true'}
+                        onClick={(e) => toggleCard(e, oco.id)}
+                      >
+                        <TableCell data-label="Data" style={{ fontWeight: '700', whiteSpace: 'nowrap', color: 'var(--text-main)' }}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div style={{ cursor: 'default' }}>
-                                <div>{shortDate(oco.data_hora)}</div>
+                                <div>{oco.data_hora_fim ? shortDatetime(oco.data_hora) : shortDate(oco.data_hora)}</div>
+                                {oco.data_hora_fim && (
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-sub)', fontWeight: 600 }}>
+                                    até {shortDatetime(oco.data_hora_fim)}
+                                  </div>
+                                )}
                                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                                   {relativeDate(oco.created_at)}
                                 </div>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <div>Ocorrência: {exactDatetime(oco.data_hora)}</div>
+                              <div>{oco.data_hora_fim ? 'Início' : 'Ocorrência'}: {exactDatetime(oco.data_hora)}</div>
+                              {oco.data_hora_fim && <div>Fim: {exactDatetime(oco.data_hora_fim)}</div>}
                               <div>Enviado: {exactDatetime(oco.created_at)}</div>
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>
-                        <TableCell style={{ fontSize: '0.85rem' }}>{oco.setor}</TableCell>
-                        <TableCell style={{ fontWeight: '700', color: 'var(--text-main)' }}>
+                        <TableCell data-label="Setor" style={{ fontSize: '0.85rem' }}>{oco.setor}</TableCell>
+                        <TableCell data-label="Colaborador" style={{ fontWeight: '700', color: 'var(--text-main)' }}>
                           {oco.colaborador?.nome_completo || '-'}
                         </TableCell>
-                        <TableCell style={{ textTransform: 'capitalize', fontSize: '0.85rem' }}>{oco.tipo}</TableCell>
-                        <TableCell style={{ maxWidth: '180px', fontSize: '0.82rem' }}>
+                        <TableCell data-label="Tipo" style={{ textTransform: 'capitalize', fontSize: '0.85rem' }}>{oco.tipo}</TableCell>
+                        <TableCell data-label="Motivo" style={{ maxWidth: '180px', fontSize: '0.82rem' }}>
                           <div
                             style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}
                             title={oco.motivo}
@@ -330,7 +348,7 @@ export default function RhDashboard() {
                             </button>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Gestor">
                           {oco.status_gestor === 'pendente'  && <StatusBadge status="pendente" label="Aguard." icon={Clock} compact />}
                           {oco.status_gestor === 'aprovado'  && <StatusBadge
                               status={oco.acao_gestor === 'abonar' ? 'abonar' : oco.acao_gestor === 'descontar' ? 'descontar' : 'aprovado'}
@@ -345,13 +363,13 @@ export default function RhDashboard() {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Status RH">
                           {oco.status_rh === 'recebido'
                             ? <StatusBadge status="rh_recebido"   label="Recebido" icon={CheckCircle} compact />
                             : <StatusBadge status="rh_aguardando" label="Aguard."  icon={Clock}       compact />
                           }
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Ação">
                           {oco.status_gestor !== 'pendente' && oco.status_rh === 'pendente' ? (
                             <AnimatePresence mode="wait">
                               {expandidoId === oco.id ? (

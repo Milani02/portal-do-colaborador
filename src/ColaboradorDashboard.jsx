@@ -67,6 +67,7 @@ export default function ColaboradorDashboard() {
   const [filterStatus, setFilterStatus] = useState(null);
   const [tipo, setTipo] = useState('');
   const [dataHora, setDataHora] = useState('');
+  const [dataHoraFim, setDataHoraFim] = useState('');
   const [motivo, setMotivo] = useState('');
   const [atestado, setAtestado] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -125,6 +126,9 @@ export default function ColaboradorDashboard() {
     const erroMotivo = validateMotivo(motivo);
     if (erroMotivo) { toast(erroMotivo, 'error'); return; }
     if (!dataHora) { toast('Informe a data e hora.', 'error'); return; }
+    if (dataHoraFim && dataHoraFim <= dataHora) {
+      toast('A data/hora final deve ser posterior à inicial.', 'error'); return;
+    }
 
     submitRef.current = true;
     setSubmitting(true);
@@ -156,6 +160,7 @@ export default function ColaboradorDashboard() {
         setor: perfil.setor,
         tipo,
         data_hora: dataHora,
+        ...(dataHoraFim && { data_hora_fim: dataHoraFim }),
         motivo: motivo.trim().substring(0, 500),
         ...(atestado_url && { atestado_url }),
       }]);
@@ -164,7 +169,7 @@ export default function ColaboradorDashboard() {
         toast('Erro ao registrar. Tente novamente.', 'error');
       } else {
         toast('Ocorrência registrada com sucesso!');
-        setTipo(''); setDataHora(''); setMotivo('');
+        setTipo(''); setDataHora(''); setDataHoraFim(''); setMotivo('');
         setAtestado(null);
         if (atestadoRef.current) atestadoRef.current.value = '';
       }
@@ -239,7 +244,7 @@ export default function ColaboradorDashboard() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="data-hora">Data e Hora</Label>
+                <Label htmlFor="data-hora">Data e Hora Inicial</Label>
                 <Input
                   id="data-hora"
                   type="datetime-local"
@@ -247,6 +252,20 @@ export default function ColaboradorDashboard() {
                   onChange={(e) => setDataHora(e.target.value)}
                   required
                   aria-required="true"
+                  className="h-11 field-premium"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="data-hora-fim">
+                  Data e Hora Final <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span>
+                </Label>
+                <Input
+                  id="data-hora-fim"
+                  type="datetime-local"
+                  value={dataHoraFim}
+                  min={dataHora || undefined}
+                  onChange={(e) => setDataHoraFim(e.target.value)}
                   className="h-11 field-premium"
                 />
               </div>
@@ -439,6 +458,7 @@ export default function ColaboradorDashboard() {
                                 <TooltipContent>
                                   <div>Enviado: {exactDatetime(h.created_at)}</div>
                                   <div>Ocorrência: {exactDatetime(h.data_hora)}</div>
+                                  {h.data_hora_fim && <div>Fim: {exactDatetime(h.data_hora_fim)}</div>}
                                 </TooltipContent>
                               </Tooltip>
                             </div>

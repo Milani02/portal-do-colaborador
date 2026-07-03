@@ -13,7 +13,7 @@ import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
 import { toast } from './utils/toast';
-import { relativeDate, exactDatetime, shortDate } from './utils/dateUtils';
+import { relativeDate, exactDatetime, shortDate, shortDatetime } from './utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from './components/StatusBadge';
@@ -62,7 +62,14 @@ export default function GestorDashboard() {
   const [search, setSearch] = useState('');
   const [acaoErros, setAcaoErros] = useState({});
   const [page, setPage] = useState(1);
+  const [cardAbertoId, setCardAbertoId] = useState(null);
   const avaliacaoRefs = useRef({});
+
+  // Mobile: cartões recolhidos por padrão; toque expande (sem efeito no desktop).
+  const toggleCard = (e, id) => {
+    if (e.target.closest('button, a, input, textarea, [role="combobox"]')) return;
+    setCardAbertoId(prev => (prev === id ? null : id));
+  };
 
   const fetchOcorrencias = useCallback(async () => {
     if (!perfil?.setor) return;
@@ -315,28 +322,39 @@ export default function GestorDashboard() {
                     <SkeletonTableRows cols={7} rows={5} />
                   ) : (
                     paginados.map((oco) => (
-                      <TableRow key={oco.id}>
-                        <TableCell style={{ fontWeight: '700', whiteSpace: 'nowrap', color: 'var(--text-main)' }}>
+                      <TableRow
+                        key={oco.id}
+                        className="oco-row"
+                        data-collapsed={cardAbertoId === oco.id ? 'false' : 'true'}
+                        onClick={(e) => toggleCard(e, oco.id)}
+                      >
+                        <TableCell data-label="Data" style={{ fontWeight: '700', whiteSpace: 'nowrap', color: 'var(--text-main)' }}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div style={{ cursor: 'default' }}>
-                                <div>{shortDate(oco.data_hora)}</div>
+                                <div>{oco.data_hora_fim ? shortDatetime(oco.data_hora) : shortDate(oco.data_hora)}</div>
+                                {oco.data_hora_fim && (
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--text-sub)', fontWeight: 600 }}>
+                                    até {shortDatetime(oco.data_hora_fim)}
+                                  </div>
+                                )}
                                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                                   {relativeDate(oco.created_at)}
                                 </div>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <div>Ocorrência: {exactDatetime(oco.data_hora)}</div>
+                              <div>{oco.data_hora_fim ? 'Início' : 'Ocorrência'}: {exactDatetime(oco.data_hora)}</div>
+                              {oco.data_hora_fim && <div>Fim: {exactDatetime(oco.data_hora_fim)}</div>}
                               <div>Enviado: {exactDatetime(oco.created_at)}</div>
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>
-                        <TableCell style={{ fontWeight: '700', color: 'var(--text-main)' }}>
+                        <TableCell data-label="Colaborador" style={{ fontWeight: '700', color: 'var(--text-main)' }}>
                           {oco.colaborador?.nome_completo || '-'}
                         </TableCell>
-                        <TableCell style={{ textTransform: 'capitalize' }}>{oco.tipo}</TableCell>
-                        <TableCell style={{ maxWidth: '180px', fontSize: '0.85rem' }}>
+                        <TableCell data-label="Tipo" style={{ textTransform: 'capitalize' }}>{oco.tipo}</TableCell>
+                        <TableCell data-label="Motivo" style={{ maxWidth: '180px', fontSize: '0.85rem' }}>
                           <div
                             style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}
                             title={oco.motivo}
@@ -354,12 +372,12 @@ export default function GestorDashboard() {
                             </button>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Status">
                           {oco.status_gestor === 'aprovado'  && <StatusBadge status="aprovado"  label="Aprovado"   icon={CheckCircle} />}
                           {oco.status_gestor === 'reprovado' && <StatusBadge status="reprovado" label="Reprovado"  icon={XCircle} />}
                           {oco.status_gestor === 'pendente'  && <StatusBadge status="pendente"  label="Aguardando" icon={Clock} />}
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Ação / Observação">
                           {(oco.status_gestor === 'pendente' || editandoId === oco.id) ? (
                             <div className="flex flex-col gap-1.5" style={{ minWidth: '190px' }}>
                               <Select
@@ -402,7 +420,7 @@ export default function GestorDashboard() {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell data-label="Decisão">
                           {(oco.status_gestor === 'pendente' || editandoId === oco.id) ? (
                             <div className="flex flex-col gap-1.5">
                               <div className="flex gap-1.5">
