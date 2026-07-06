@@ -159,8 +159,10 @@ export default function ColaboradorDashboard() {
         colaborador_id: perfil.id,
         setor: perfil.setor,
         tipo,
-        data_hora: dataHora,
-        ...(dataHoraFim && { data_hora_fim: dataHoraFim }),
+        // datetime-local não tem fuso: convertemos para ISO (UTC) para o Postgres
+        // não interpretar o horário local como UTC (senão exibe 3h a menos).
+        data_hora: new Date(dataHora).toISOString(),
+        ...(dataHoraFim && { data_hora_fim: new Date(dataHoraFim).toISOString() }),
         motivo: motivo.trim().substring(0, 500),
         ...(atestado_url && { atestado_url }),
       }]);

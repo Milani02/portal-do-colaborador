@@ -115,8 +115,9 @@ export default function RhDashboard() {
   };
 
   const exportarPDF = () => {
-    const filtradas = filtradaPorData;
-    if (!filtradas.length) { toast('Nenhuma ocorrência no período selecionado.', 'error'); return; }
+    // Exporta exatamente o que está na tela: período + busca (nome/setor) + filtro de status.
+    const filtradas = visiveis;
+    if (!filtradas.length) { toast('Nenhuma ocorrência com os filtros selecionados.', 'error'); return; }
     try {
       const doc = new jsPDF('landscape');
       doc.setFontSize(14);
