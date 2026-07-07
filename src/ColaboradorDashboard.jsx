@@ -28,6 +28,8 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import './index.css';
 
+const MAX_ATESTADOS = 10;
+
 const TIPOS_LABELS = {
   falta: 'Falta',
   'atraso/saida antecipada': 'Atraso / Saída',
@@ -69,7 +71,7 @@ export default function ColaboradorDashboard() {
   const [dataHora, setDataHora] = useState('');
   const [dataHoraFim, setDataHoraFim] = useState('');
   const [motivo, setMotivo] = useState('');
-  const [atestado, setAtestado] = useState(null);
+  const [atestados, setAtestados] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [historico, setHistorico] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -134,25 +136,29 @@ export default function ColaboradorDashboard() {
     setSubmitting(true);
 
     try {
-      let atestado_url = null;
+      // Bucket é privado: guardamos os CAMINHOS dos arquivos, não URLs públicas.
+      // Só o RH gera uma signed URL temporária para baixar (ver RhDashboard).
+      const atestadoPaths = [];
 
-      if (atestado) {
-        const ext = atestado.name.split('.').pop();
-        const path = `${perfil.id}/${Date.now()}.${ext}`;
+      for (const [i, arquivo] of atestados.entries()) {
+        const ext = arquivo.name.split('.').pop();
+        const path = `${perfil.id}/${Date.now()}-${i}.${ext}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('atestados')
-          .upload(path, atestado, { contentType: atestado.type, upsert: false });
+          .upload(path, arquivo, { contentType: arquivo.type, upsert: false });
 
         if (uploadError) {
-          toast('Erro ao enviar atestado. Tente novamente.', 'error');
+          // Remove o que já subiu para não deixar arquivos órfãos no bucket.
+          if (atestadoPaths.length > 0) {
+            await supabase.storage.from('atestados').remove(atestadoPaths);
+          }
+          toast(`Erro ao enviar o atestado "${arquivo.name}". Tente novamente.`, 'error');
           setSubmitting(false);
           submitRef.current = false;
           return;
         }
 
-        // Bucket é privado: guardamos o CAMINHO do arquivo, não uma URL pública.
-        // Só o RH gera uma signed URL temporária para baixar (ver RhDashboard).
-        atestado_url = uploadData.path;
+        atestadoPaths.push(uploadData.path);
       }
 
       const { error } = await supabase.from('ocorrencias').insert([{
@@ -164,7 +170,8 @@ export default function ColaboradorDashboard() {
         data_hora: new Date(dataHora).toISOString(),
         ...(dataHoraFim && { data_hora_fim: new Date(dataHoraFim).toISOString() }),
         motivo: motivo.trim().substring(0, 500),
-        ...(atestado_url && { atestado_url }),
+        // atestado_url guarda o primeiro arquivo por compatibilidade com registros antigos.
+        ...(atestadoPaths.length > 0 && { atestado_url: atestadoPaths[0], atestados: atestadoPaths }),
       }]);
 
       if (error) {
@@ -172,7 +179,7 @@ export default function ColaboradorDashboard() {
       } else {
         toast('Ocorrência registrada com sucesso!');
         setTipo(''); setDataHora(''); setDataHoraFim(''); setMotivo('');
-        setAtestado(null);
+        setAtestados([]);
         if (atestadoRef.current) atestadoRef.current.value = '';
       }
     } catch {
@@ -290,62 +297,83 @@ export default function ColaboradorDashboard() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <Label>Atestado <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span></Label>
+                <Label>Atestados <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional — até {MAX_ATESTADOS} arquivos)</span></Label>
                 <input
                   ref={atestadoRef}
                   id="atestado-input"
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
+                  multiple
                   className="hidden"
                   onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) { setAtestado(null); return; }
-                    if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
-                      toast('Formato inválido. Use PDF, JPG ou PNG.', 'error');
-                      e.target.value = '';
-                      return;
+                    const files = Array.from(e.target.files || []);
+                    e.target.value = '';
+                    if (!files.length) return;
+                    const validos = [];
+                    for (const file of files) {
+                      if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
+                        toast(`"${file.name}": formato inválido. Use PDF, JPG ou PNG.`, 'error');
+                        continue;
+                      }
+                      if (file.size > 10 * 1024 * 1024) {
+                        toast(`"${file.name}": arquivo muito grande. Limite: 10 MB.`, 'error');
+                        continue;
+                      }
+                      validos.push(file);
                     }
-                    if (file.size > 10 * 1024 * 1024) {
-                      toast('Arquivo muito grande. Limite: 10 MB.', 'error');
-                      e.target.value = '';
-                      return;
-                    }
-                    setAtestado(file);
+                    setAtestados(prev => {
+                      const juntos = [...prev];
+                      for (const f of validos) {
+                        if (juntos.length >= MAX_ATESTADOS) {
+                          toast(`Limite de ${MAX_ATESTADOS} arquivos por ocorrência.`, 'error');
+                          break;
+                        }
+                        // Evita anexar o mesmo arquivo duas vezes.
+                        if (!juntos.some(x => x.name === f.name && x.size === f.size)) juntos.push(f);
+                      }
+                      return juntos;
+                    });
                   }}
                 />
-                {atestado ? (
+                {atestados.length > 0 && (
                   <div
                     style={{
                       border: '1px solid rgba(92,108,36,0.35)',
                       borderRadius: '10px',
                       background: 'rgba(92,108,36,0.04)',
                       padding: '0.65rem 0.85rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.45rem',
                     }}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
-                        <FileText size={15} style={{ color: 'var(--primary)', flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {atestado.name}
-                        </span>
+                    {atestados.map((arquivo, i) => (
+                      <div key={`${arquivo.name}-${arquivo.size}`} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
+                          <FileText size={15} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {arquivo.name}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAtestados(prev => prev.filter((_, j) => j !== i))}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
+                            color: 'var(--text-muted)', flexShrink: 0, lineHeight: 1,
+                          }}
+                          aria-label={`Remover atestado ${arquivo.name}`}
+                        >
+                          <X size={15} />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => { setAtestado(null); if (atestadoRef.current) atestadoRef.current.value = ''; }}
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer', padding: '2px',
-                          color: 'var(--text-muted)', flexShrink: 0, lineHeight: 1,
-                        }}
-                        aria-label="Remover atestado"
-                      >
-                        <X size={15} />
-                      </button>
-                    </div>
-                    <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: '#92400e', fontWeight: 500, lineHeight: 1.4 }}>
-                      Este arquivo não substitui o documento original.
+                    ))}
+                    <p style={{ margin: '0.15rem 0 0', fontSize: '0.75rem', color: '#92400e', fontWeight: 500, lineHeight: 1.4 }}>
+                      {atestados.length === 1 ? 'Este arquivo não substitui o documento original.' : 'Estes arquivos não substituem os documentos originais.'}
                     </p>
                   </div>
-                ) : (
+                )}
+                {atestados.length < MAX_ATESTADOS && (
                   <label
                     htmlFor="atestado-input"
                     style={{
@@ -363,7 +391,7 @@ export default function ColaboradorDashboard() {
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
                   >
                     <Paperclip size={15} />
-                    Clique para anexar atestado
+                    {atestados.length > 0 ? 'Anexar mais arquivos' : 'Clique para anexar atestados'}
                   </label>
                 )}
               </div>
@@ -482,12 +510,13 @@ export default function ColaboradorDashboard() {
                           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 0.25rem', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                             {h.motivo}
                           </p>
-                          {h.atestado_url && (
+                          {(h.atestados?.length > 0 || h.atestado_url) && (
                             <span
                               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.25rem' }}
                               title="Atestado enviado — apenas o RH pode baixar"
                             >
-                              <Paperclip size={11} /> Atestado anexado
+                              <Paperclip size={11} />
+                              {h.atestados?.length > 1 ? `${h.atestados.length} atestados anexados` : 'Atestado anexado'}
                             </span>
                           )}
                           {(h.observacao_gestor || h.observacao_rh) && (

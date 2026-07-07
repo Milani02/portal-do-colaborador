@@ -32,6 +32,10 @@ import {
 } from '@/components/ui/table';
 import './index.css';
 
+// Registros novos guardam vários caminhos em `atestados`; os antigos, um único em `atestado_url`.
+const listaAtestados = (oco) =>
+  oco.atestados?.length ? oco.atestados : oco.atestado_url ? [oco.atestado_url] : [];
+
 function SkeletonTableRows({ cols = 8, rows = 6 }) {
   const ws = ['w-20', 'w-24', 'w-36', 'w-20', 'w-44', 'w-24', 'w-24', 'w-24'];
   return Array.from({ length: rows }).map((_, i) => (
@@ -137,7 +141,7 @@ export default function RhDashboard() {
           (o.acao_gestor || '-').toUpperCase(),
           (o.status_rh || '-').toUpperCase(),
           o.observacao_rh || '-',
-          o.atestado_url ? 'Sim' : '—',
+          listaAtestados(o).length ? `Sim (${listaAtestados(o).length})` : '—',
         ]),
         startY: 28,
         styles: { fontSize: 7.5 },
@@ -338,15 +342,20 @@ export default function RhDashboard() {
                           >
                             {oco.motivo}
                           </div>
-                          {oco.atestado_url && (
-                            <button
-                              type="button"
-                              onClick={() => baixarAtestado(oco.atestado_url)}
-                              title="Baixar atestado"
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: 600, color: 'var(--primary)', marginTop: '0.25rem', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                            >
-                              <Paperclip size={11} /> Baixar atestado
-                            </button>
+                          {listaAtestados(oco).length > 0 && (
+                            <div className="flex flex-wrap items-center" style={{ gap: '0.25rem 0.75rem', marginTop: '0.25rem' }}>
+                              {listaAtestados(oco).map((anexo, i, arr) => (
+                                <button
+                                  key={anexo}
+                                  type="button"
+                                  onClick={() => baixarAtestado(anexo)}
+                                  title="Baixar atestado"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: 600, color: 'var(--primary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                                >
+                                  <Paperclip size={11} /> Baixar atestado{arr.length > 1 ? ` ${i + 1}` : ''}
+                                </button>
+                              ))}
+                            </div>
                           )}
                         </TableCell>
                         <TableCell data-label="Gestor">
