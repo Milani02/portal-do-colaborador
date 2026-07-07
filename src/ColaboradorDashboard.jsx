@@ -297,7 +297,7 @@ export default function ColaboradorDashboard() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <Label>Atestados <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional — até {MAX_ATESTADOS} arquivos)</span></Label>
+                <Label>Atestados <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span></Label>
                 <input
                   ref={atestadoRef}
                   id="atestado-input"
