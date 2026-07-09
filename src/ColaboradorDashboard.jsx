@@ -30,8 +30,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import './index.css';
@@ -658,76 +656,92 @@ export default function ColaboradorDashboard() {
 
       {/* Dialog de edição — disponível apenas enquanto o gestor não avaliou */}
       <Dialog open={!!editing} onOpenChange={(open) => { if (!open && !savingEdit) setEditing(null); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Ocorrência</DialogTitle>
-            <DialogDescription>
-              Você pode alterar os dados enquanto o gestor ainda não avaliou.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSaveEdit} noValidate className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-tipo">Tipo de Ocorrência</Label>
-              <Select value={editTipo} onValueChange={setEditTipo} required>
-                <SelectTrigger id="edit-tipo" aria-required="true" className="h-11 field-premium">
-                  <SelectValue placeholder="Selecione o tipo..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {VALID_TIPOS_OCORRENCIA.map((t) => (
-                      <SelectItem key={t} value={t}>{TIPOS_LABELS[t]}</SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+        <DialogContent
+          className="sm:max-w-lg gap-0 edit-dialog"
+          // Fecha apenas pelo X, Cancelar ou Esc — clique "fora" (inclusive o
+          // que o Radix detecta errado em itens portalados, como o select)
+          // não pode descartar uma edição em andamento.
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <div className="edit-dialog-header">
+            <div className="edit-dialog-chip" aria-hidden="true">
+              <Pencil size={19} />
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-data-hora">Data e Hora Inicial</Label>
-              <Input
-                id="edit-data-hora"
-                type="datetime-local"
-                value={editDataHora}
-                onChange={(e) => setEditDataHora(e.target.value)}
-                required
-                aria-required="true"
-                className="h-11 field-premium"
-              />
+            <div>
+              <DialogTitle className="edit-dialog-title">Editar Ocorrência</DialogTitle>
+              <DialogDescription className="edit-dialog-sub">
+                {editing && <>Enviada {relativeDate(editing.created_at)} — editável enquanto o gestor não avaliar.</>}
+              </DialogDescription>
             </div>
+          </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-data-hora-fim">
-                Data e Hora Final <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span>
-              </Label>
-              <Input
-                id="edit-data-hora-fim"
-                type="datetime-local"
-                value={editDataHoraFim}
-                min={editDataHora || undefined}
-                onChange={(e) => setEditDataHoraFim(e.target.value)}
-                className="h-11 field-premium"
-              />
-            </div>
+          <form onSubmit={handleSaveEdit} noValidate>
+            <div className="edit-dialog-body flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="edit-tipo">Tipo de Ocorrência</Label>
+                <Select value={editTipo} onValueChange={setEditTipo} required>
+                  <SelectTrigger id="edit-tipo" aria-required="true" className="h-11 w-full field-premium">
+                    <SelectValue placeholder="Selecione o tipo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {VALID_TIPOS_OCORRENCIA.map((t) => (
+                        <SelectItem key={t} value={t}>{TIPOS_LABELS[t]}</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-motivo">Descrição / Motivo</Label>
-              <Textarea
-                id="edit-motivo"
-                value={editMotivo}
-                onChange={(e) => setEditMotivo(e.target.value)}
-                placeholder="Descreva os detalhes da ocorrência..."
-                required
-                aria-required="true"
-                maxLength={500}
-                className="min-h-[110px] field-premium-ta"
-              />
-              <div className={`char-counter ${editMotivo.length > 500 ? 'error' : editMotivo.length > 450 ? 'warning' : ''}`}>
-                {editMotivo.length}/500
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="edit-data-hora">Data e Hora Inicial</Label>
+                  <Input
+                    id="edit-data-hora"
+                    type="datetime-local"
+                    value={editDataHora}
+                    onChange={(e) => setEditDataHora(e.target.value)}
+                    required
+                    aria-required="true"
+                    className="h-11 field-premium"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="edit-data-hora-fim">
+                    Data e Hora Final <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span>
+                  </Label>
+                  <Input
+                    id="edit-data-hora-fim"
+                    type="datetime-local"
+                    value={editDataHoraFim}
+                    min={editDataHora || undefined}
+                    onChange={(e) => setEditDataHoraFim(e.target.value)}
+                    className="h-11 field-premium"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="edit-motivo">Descrição / Motivo</Label>
+                <Textarea
+                  id="edit-motivo"
+                  value={editMotivo}
+                  onChange={(e) => setEditMotivo(e.target.value)}
+                  placeholder="Descreva os detalhes da ocorrência..."
+                  required
+                  aria-required="true"
+                  maxLength={500}
+                  className="min-h-[110px] field-premium-ta"
+                />
+                <div className={`char-counter ${editMotivo.length > 500 ? 'error' : editMotivo.length > 450 ? 'warning' : ''}`}>
+                  {editMotivo.length}/500
+                </div>
               </div>
             </div>
 
-            <DialogFooter>
+            <div className="edit-dialog-footer flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
@@ -743,7 +757,7 @@ export default function ColaboradorDashboard() {
               >
                 {savingEdit ? 'Salvando...' : 'Salvar Alterações'}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
