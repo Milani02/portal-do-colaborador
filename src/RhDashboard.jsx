@@ -169,10 +169,13 @@ export default function RhDashboard() {
   const term = search.trim().toLowerCase();
   const filtradaPorData = ocorrencias.filter((o) => {
     if (!dataInicio && !dataFim) return true;
-    const d = new Date(o.created_at);
     const ini = dataInicio ? new Date(`${dataInicio}T00:00:00`) : new Date('2000-01-01');
     const fim = dataFim   ? new Date(`${dataFim}T23:59:59`)    : new Date('2100-01-01');
-    return d >= ini && d <= fim;
+    // Filtra pela data da ocorrência (não pela data de envio); ocorrências com
+    // período entram se qualquer parte dele cair dentro do intervalo pesquisado.
+    const ocoIni = new Date(o.data_hora);
+    const ocoFim = o.data_hora_fim ? new Date(o.data_hora_fim) : ocoIni;
+    return ocoIni <= fim && ocoFim >= ini;
   });
   const visiveisBusca = term
     ? filtradaPorData.filter(o =>
@@ -249,7 +252,7 @@ export default function RhDashboard() {
                 />
               </div>
               <div className="flex items-center gap-1.5">
-                <label htmlFor="rh-ini" className="text-xs text-muted-foreground font-medium">Enviado de</label>
+                <label htmlFor="rh-ini" className="text-xs text-muted-foreground font-medium">Ocorrência de</label>
                 <Input id="rh-ini" type="date" value={dataInicio} onChange={(e) => { setDataInicio(e.target.value); setPage(1); }} className="h-8 text-sm w-36" />
               </div>
               <div className="flex items-center gap-1.5">
