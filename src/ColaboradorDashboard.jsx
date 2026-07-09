@@ -9,7 +9,7 @@ import { containerVariants, itemVariantsLight } from './utils/animations';
 import { validateMotivo, validateTipoOcorrencia, VALID_TIPOS_OCORRENCIA } from './utils/validation';
 import { toast } from './utils/toast';
 import { relativeDate, exactDatetime } from './utils/dateUtils';
-import { FileText, Paperclip, X } from 'lucide-react';
+import { FileText, Paperclip, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from './components/StatusBadge';
@@ -26,6 +26,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import './index.css';
 
 const MAX_ATESTADOS = 10;
@@ -36,6 +44,15 @@ const TIPOS_LABELS = {
   'hora extra': 'Hora Extra',
   outros: 'Outros',
 };
+
+// Converte um timestamp ISO (UTC) para o formato aceito pelo input datetime-local,
+// no fuso do navegador — o inverso do toISOString() feito no submit.
+function toLocalInput(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
 
 const STATUS_GESTOR = {
   aprovado:  { variant: 'default', label: 'Aprovado',   dot: '#059669' },
@@ -75,7 +92,14 @@ export default function ColaboradorDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [historico, setHistorico] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [editing, setEditing] = useState(null);
+  const [editTipo, setEditTipo] = useState('');
+  const [editDataHora, setEditDataHora] = useState('');
+  const [editDataHoraFim, setEditDataHoraFim] = useState('');
+  const [editMotivo, setEditMotivo] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const submitRef = useRef(false);
+  const editRef = useRef(false);
   const atestadoRef = useRef(null);
   const prevStatusRef = useRef({});
 
@@ -187,6 +211,66 @@ export default function ColaboradorDashboard() {
     } finally {
       setSubmitting(false);
       submitRef.current = false;
+    }
+  };
+
+  const openEdit = (h) => {
+    setEditing(h);
+    setEditTipo(h.tipo);
+    setEditDataHora(toLocalInput(h.data_hora));
+    setEditDataHoraFim(toLocalInput(h.data_hora_fim));
+    setEditMotivo(h.motivo || '');
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (editRef.current || !editing) return;
+
+    if (!validateTipoOcorrencia(editTipo)) {
+      toast('Selecione um tipo de ocorrência.', 'error'); return;
+    }
+    const erroMotivo = validateMotivo(editMotivo);
+    if (erroMotivo) { toast(erroMotivo, 'error'); return; }
+    if (!editDataHora) { toast('Informe a data e hora.', 'error'); return; }
+    if (editDataHoraFim && editDataHoraFim <= editDataHora) {
+      toast('A data/hora final deve ser posterior à inicial.', 'error'); return;
+    }
+
+    editRef.current = true;
+    setSavingEdit(true);
+
+    try {
+      // O filtro por status_gestor='pendente' garante que, se o gestor avaliar
+      // enquanto o dialog está aberto, a edição não sobrescreve nada (0 linhas).
+      const { data, error } = await supabase
+        .from('ocorrencias')
+        .update({
+          tipo: editTipo,
+          data_hora: new Date(editDataHora).toISOString(),
+          data_hora_fim: editDataHoraFim ? new Date(editDataHoraFim).toISOString() : null,
+          motivo: editMotivo.trim().substring(0, 500),
+        })
+        .eq('id', editing.id)
+        .eq('colaborador_id', perfil.id)
+        .eq('status_gestor', 'pendente')
+        .select();
+
+      if (error) {
+        toast('Erro ao salvar as alterações. Tente novamente.', 'error');
+      } else if (!data || data.length === 0) {
+        toast('Esta ocorrência já foi avaliada pelo gestor e não pode mais ser editada.', 'error');
+        setEditing(null);
+        void fetchHistorico();
+      } else {
+        toast('Ocorrência atualizada com sucesso!');
+        setEditing(null);
+        void fetchHistorico();
+      }
+    } catch {
+      toast('Erro inesperado. Tente novamente.', 'error');
+    } finally {
+      setSavingEdit(false);
+      editRef.current = false;
     }
   };
 
@@ -492,7 +576,29 @@ export default function ColaboradorDashboard() {
                                 </TooltipContent>
                               </Tooltip>
                             </div>
-                            <div className="flex gap-1.5 flex-wrap">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {h.status_gestor === 'pendente' && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      onClick={() => openEdit(h)}
+                                      style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                                        fontSize: '0.7rem', fontWeight: '700', color: 'var(--primary)',
+                                        background: 'rgba(92,108,36,0.08)', border: '1px solid rgba(92,108,36,0.2)',
+                                        borderRadius: '999px', padding: '0.18rem 0.6rem', cursor: 'pointer',
+                                        letterSpacing: '0.03em',
+                                      }}
+                                      aria-label="Editar ocorrência"
+                                    >
+                                      <Pencil size={11} />
+                                      Editar
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Editável até o gestor avaliar</TooltipContent>
+                                </Tooltip>
+                              )}
                               {h.status_gestor === 'aprovado' && h.acao_gestor ? (
                                 <StatusBadge
                                   status={h.acao_gestor === 'abonar' ? 'abonar' : 'descontar'}
@@ -549,6 +655,98 @@ export default function ColaboradorDashboard() {
 
         </motion.div>
       </div>
+
+      {/* Dialog de edição — disponível apenas enquanto o gestor não avaliou */}
+      <Dialog open={!!editing} onOpenChange={(open) => { if (!open && !savingEdit) setEditing(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Ocorrência</DialogTitle>
+            <DialogDescription>
+              Você pode alterar os dados enquanto o gestor ainda não avaliou.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveEdit} noValidate className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="edit-tipo">Tipo de Ocorrência</Label>
+              <Select value={editTipo} onValueChange={setEditTipo} required>
+                <SelectTrigger id="edit-tipo" aria-required="true" className="h-11 field-premium">
+                  <SelectValue placeholder="Selecione o tipo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {VALID_TIPOS_OCORRENCIA.map((t) => (
+                      <SelectItem key={t} value={t}>{TIPOS_LABELS[t]}</SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="edit-data-hora">Data e Hora Inicial</Label>
+              <Input
+                id="edit-data-hora"
+                type="datetime-local"
+                value={editDataHora}
+                onChange={(e) => setEditDataHora(e.target.value)}
+                required
+                aria-required="true"
+                className="h-11 field-premium"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="edit-data-hora-fim">
+                Data e Hora Final <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span>
+              </Label>
+              <Input
+                id="edit-data-hora-fim"
+                type="datetime-local"
+                value={editDataHoraFim}
+                min={editDataHora || undefined}
+                onChange={(e) => setEditDataHoraFim(e.target.value)}
+                className="h-11 field-premium"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="edit-motivo">Descrição / Motivo</Label>
+              <Textarea
+                id="edit-motivo"
+                value={editMotivo}
+                onChange={(e) => setEditMotivo(e.target.value)}
+                placeholder="Descreva os detalhes da ocorrência..."
+                required
+                aria-required="true"
+                maxLength={500}
+                className="min-h-[110px] field-premium-ta"
+              />
+              <div className={`char-counter ${editMotivo.length > 500 ? 'error' : editMotivo.length > 450 ? 'warning' : ''}`}>
+                {editMotivo.length}/500
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={savingEdit}
+                onClick={() => setEditing(null)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={savingEdit || editMotivo.length > 500}
+                className="btn-action-primary"
+              >
+                {savingEdit ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
