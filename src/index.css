@@ -1059,6 +1059,33 @@ select.input-vision { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
   border-top: 1px solid rgba(92,108,36,0.1);
 }
 
+/* Texto longo com "Ver mais" (motivo nas tabelas do gestor/RH) */
+.expandable-text {
+  color: var(--text-muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.expandable-text.clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.expandable-text-toggle {
+  display: inline-block;
+  margin-top: 0.15rem;
+  padding: 0.2rem 0.35rem 0.2rem 0;
+  border: none;
+  background: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+.expandable-text-toggle:hover {
+  text-decoration: underline;
+}
+
 /* ============================================
    20. ACCESSIBILITY
    ============================================ */
@@ -1123,12 +1150,6 @@ select.input-vision { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
     letter-spacing: 0.08em;
     color: var(--text-muted);
     margin-bottom: 0.3rem;
-  }
-  /* Motivo completo no cartão (sem reticências) */
-  .table-container table tbody td[data-label] > div[title] {
-    white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
   }
   /* Botões de decisão fáceis de tocar e bem distribuídos */
   .table-container table tbody td [data-slot="button"] {

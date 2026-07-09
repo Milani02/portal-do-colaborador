@@ -17,6 +17,7 @@ import { relativeDate, exactDatetime, shortDate, shortDatetime } from './utils/d
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from './components/StatusBadge';
+import { ExpandableText } from './components/ExpandableText';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -169,7 +170,7 @@ export default function GestorDashboard() {
           shortDate(o.data_hora),
           o.colaborador?.nome_completo || '-',
           o.tipo || '-',
-          (o.motivo || '').substring(0, 60),
+          o.motivo || '-',
           (o.status_gestor || '-').toUpperCase(),
           (o.acao_gestor || '-').toUpperCase(),
           o.observacao_gestor || '-',
@@ -362,13 +363,8 @@ export default function GestorDashboard() {
                           {oco.colaborador?.nome_completo || '-'}
                         </TableCell>
                         <TableCell data-label="Tipo" style={{ textTransform: 'capitalize' }}>{oco.tipo}</TableCell>
-                        <TableCell data-label="Motivo" style={{ maxWidth: '180px', fontSize: '0.85rem' }}>
-                          <div
-                            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}
-                            title={oco.motivo}
-                          >
-                            {oco.motivo}
-                          </div>
+                        <TableCell data-label="Motivo" style={{ maxWidth: '220px', fontSize: '0.85rem' }}>
+                          <ExpandableText text={oco.motivo} />
                           {listaAtestados(oco).length > 0 && (
                             <div className="flex flex-wrap items-center" style={{ gap: '0.25rem 0.75rem', marginTop: '0.25rem' }}>
                               {listaAtestados(oco).map((anexo, i, arr) => (

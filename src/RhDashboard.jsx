@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from './components/StatusBadge';
+import { ExpandableText } from './components/ExpandableText';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -135,7 +136,7 @@ export default function RhDashboard() {
           o.setor || '-',
           o.colaborador?.nome_completo || '-',
           o.tipo || '-',
-          (o.motivo || '').substring(0, 40),
+          o.motivo || '-',
           o.status_gestor !== 'pendente' ? (o.gestor?.nome_completo || '-') : '-',
           (o.status_gestor || '-').toUpperCase(),
           (o.acao_gestor || '-').toUpperCase(),
@@ -338,13 +339,8 @@ export default function RhDashboard() {
                           {oco.colaborador?.nome_completo || '-'}
                         </TableCell>
                         <TableCell data-label="Tipo" style={{ textTransform: 'capitalize', fontSize: '0.85rem' }}>{oco.tipo}</TableCell>
-                        <TableCell data-label="Motivo" style={{ maxWidth: '180px', fontSize: '0.82rem' }}>
-                          <div
-                            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-muted)' }}
-                            title={oco.motivo}
-                          >
-                            {oco.motivo}
-                          </div>
+                        <TableCell data-label="Motivo" style={{ maxWidth: '220px', fontSize: '0.82rem' }}>
+                          <ExpandableText text={oco.motivo} />
                           {listaAtestados(oco).length > 0 && (
                             <div className="flex flex-wrap items-center" style={{ gap: '0.25rem 0.75rem', marginTop: '0.25rem' }}>
                               {listaAtestados(oco).map((anexo, i, arr) => (
