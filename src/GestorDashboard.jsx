@@ -165,9 +165,11 @@ export default function GestorDashboard() {
       doc.setFontSize(9);
       doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 22);
       autoTable(doc, {
-        head: [['Data', 'Colaborador', 'Tipo', 'Motivo', 'Status', 'Ação', 'Observação', 'Atestado']],
+        head: [['Data/Hora', 'Colaborador', 'Tipo', 'Motivo', 'Status', 'Ação', 'Observação', 'Atestado']],
         body: filtradas.map((o) => [
-          shortDate(o.data_hora),
+          o.data_hora_fim
+            ? `${exactDatetime(o.data_hora)}\naté ${exactDatetime(o.data_hora_fim)}`
+            : exactDatetime(o.data_hora),
           o.colaborador?.nome_completo || '-',
           o.tipo || '-',
           o.motivo || '-',
@@ -179,7 +181,7 @@ export default function GestorDashboard() {
         startY: 28,
         styles: { fontSize: 7.5 },
         headStyles: { fillColor: [92, 108, 36] },
-        columnStyles: { 3: { cellWidth: 50 } },
+        columnStyles: { 0: { cellWidth: 27 }, 3: { cellWidth: 45 } },
       });
       doc.save(`Relatorio_Gestor_${perfil.setor}_${new Date().toISOString().slice(0, 10)}.pdf`);
       toast('PDF exportado com sucesso!');

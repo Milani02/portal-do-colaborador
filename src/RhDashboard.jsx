@@ -130,9 +130,11 @@ export default function RhDashboard() {
       doc.setFontSize(9);
       doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 22);
       autoTable(doc, {
-        head: [['Data', 'Setor', 'Colaborador', 'Tipo', 'Motivo', 'Gestor', 'Aprov. Gestor', 'Ação', 'Status RH', 'Obs. RH', 'Atestado']],
+        head: [['Data/Hora', 'Setor', 'Colaborador', 'Tipo', 'Motivo', 'Gestor', 'Aprov. Gestor', 'Ação', 'Status RH', 'Obs. RH', 'Atestado']],
         body: filtradas.map((o) => [
-          shortDate(o.data_hora),
+          o.data_hora_fim
+            ? `${exactDatetime(o.data_hora)}\naté ${exactDatetime(o.data_hora_fim)}`
+            : exactDatetime(o.data_hora),
           o.setor || '-',
           o.colaborador?.nome_completo || '-',
           o.tipo || '-',
@@ -147,7 +149,7 @@ export default function RhDashboard() {
         startY: 28,
         styles: { fontSize: 7.5 },
         headStyles: { fillColor: [37, 99, 235] },
-        columnStyles: { 4: { cellWidth: 45 } },
+        columnStyles: { 0: { cellWidth: 27 }, 4: { cellWidth: 45 } },
       });
       doc.save(`Relatorio_RH_${new Date().toISOString().slice(0, 10)}.pdf`);
       toast('PDF exportado com sucesso!');

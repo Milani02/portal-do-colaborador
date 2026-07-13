@@ -9,7 +9,7 @@ import { containerVariants, itemVariantsLight } from './utils/animations';
 import { validateMotivo, validateTipoOcorrencia, VALID_TIPOS_OCORRENCIA } from './utils/validation';
 import { toast } from './utils/toast';
 import { relativeDate, exactDatetime } from './utils/dateUtils';
-import { FileText, Paperclip, Pencil, X } from 'lucide-react';
+import { CalendarClock, FileText, Paperclip, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from './components/StatusBadge';
@@ -611,6 +611,13 @@ export default function ColaboradorDashboard() {
                               />
                             </div>
                           </div>
+                          <span
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-sub)', marginBottom: '0.35rem' }}
+                          >
+                            <CalendarClock size={12} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                            {exactDatetime(h.data_hora)}
+                            {h.data_hora_fim && <> — até {exactDatetime(h.data_hora_fim)}</>}
+                          </span>
                           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0 0 0.25rem', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                             {h.motivo}
                           </p>
