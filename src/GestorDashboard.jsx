@@ -76,29 +76,32 @@ export default function GestorDashboard() {
     setCardAbertoId(prev => (prev === id ? null : id));
   };
 
+  const perfilId = perfil?.id;
+  const perfilSetor = perfil?.setor;
+
   const fetchOcorrencias = useCallback(async () => {
-    if (!perfil?.setor) return;
+    if (!perfilSetor) return;
     const { data, error } = await supabase
       .from('ocorrencias')
       .select('*, colaborador:profiles!ocorrencias_colaborador_id_fkey (nome_completo)')
       // Comparação resiliente: ignora maiúsculas/minúsculas e espaços nas pontas,
       // para o roteamento não quebrar com "Produção" vs "produção" etc.
-      .ilike('setor', perfil.setor.trim())
+      .ilike('setor', perfilSetor.trim())
       .order('created_at', { ascending: false });
     if (error) { toast('Erro ao carregar ocorrências.', 'error'); return; }
     if (data) setOcorrencias(data);
     setLoadingData(false);
-  }, [perfil?.setor]);
+  }, [perfilSetor]);
 
   useEffect(() => {
-    if (!perfil) return;
+    if (!perfilId) return;
     void fetchOcorrencias(); // eslint-disable-line react-hooks/set-state-in-effect
     const channel = supabase
-      .channel(`gestor-ocos-${perfil.id}`)
+      .channel(`gestor-ocos-${perfilId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ocorrencias' }, fetchOcorrencias)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [perfil?.id, fetchOcorrencias]);
+  }, [perfilId, fetchOcorrencias]);
 
   const verAtestado = async (valor) => {
     // Aceita o caminho novo OU a URL pública antiga (extrai o caminho após /atestados/).

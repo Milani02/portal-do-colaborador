@@ -101,12 +101,14 @@ export default function ColaboradorDashboard() {
   const atestadoRef = useRef(null);
   const prevStatusRef = useRef({});
 
+  const perfilId = perfil?.id;
+
   const fetchHistorico = useCallback(async () => {
-    if (!perfil?.id) return;
+    if (!perfilId) return;
     const { data } = await supabase
       .from('ocorrencias')
       .select('*')
-      .eq('colaborador_id', perfil.id)
+      .eq('colaborador_id', perfilId)
       .order('created_at', { ascending: false });
     if (data) {
       if (Object.keys(prevStatusRef.current).length > 0) {
@@ -125,20 +127,20 @@ export default function ColaboradorDashboard() {
       setHistorico(data);
     }
     setLoadingData(false);
-  }, [perfil?.id]);
+  }, [perfilId]);
 
   useEffect(() => {
-    if (!perfil) return;
+    if (!perfilId) return;
     void fetchHistorico(); // eslint-disable-line react-hooks/set-state-in-effect
     const channel = supabase
-      .channel(`colab-ocos-${perfil.id}`)
+      .channel(`colab-ocos-${perfilId}`)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'ocorrencias',
-        filter: `colaborador_id=eq.${perfil.id}`,
+        filter: `colaborador_id=eq.${perfilId}`,
       }, fetchHistorico)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [perfil?.id, fetchHistorico]);
+  }, [perfilId, fetchHistorico]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

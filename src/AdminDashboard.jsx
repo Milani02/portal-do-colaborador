@@ -13,7 +13,6 @@ import { containerVariants } from './utils/animations';
 import { validateCargo, validateSetor, VALID_CARGOS } from './utils/validation';
 import { toast } from './utils/toast';
 import { getInitials } from './utils/string';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -70,8 +69,10 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
+  const perfilId = perfil?.id;
+
   useEffect(() => {
-    if (!perfil) return;
+    if (!perfilId) return;
     let isMounted = true;
     supabase
       .from('profiles')
@@ -84,7 +85,7 @@ export default function AdminDashboard() {
         setLoadingData(false);
       });
     return () => { isMounted = false; };
-  }, [perfil?.id]);
+  }, [perfilId]);
 
   const atualizarUsuario = async (id, novoCargo, novoSetor) => {
     if (!validateCargo(novoCargo)) { toast('Cargo inválido.', 'error'); return; }

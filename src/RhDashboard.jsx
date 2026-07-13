@@ -68,8 +68,10 @@ export default function RhDashboard() {
     setCardAbertoId(prev => (prev === id ? null : id));
   };
 
+  const perfilId = perfil?.id;
+
   const fetchOcorrencias = useCallback(async () => {
-    if (!perfil?.id) return;
+    if (!perfilId) return;
     const { data, error } = await supabase
       .from('ocorrencias')
       .select('*, colaborador:colaborador_id (nome_completo), gestor:gestor_id (nome_completo)')
@@ -77,17 +79,17 @@ export default function RhDashboard() {
     if (error) { toast('Erro ao carregar dados.', 'error'); return; }
     if (data) setOcorrencias(data);
     setLoadingData(false);
-  }, [perfil?.id]);
+  }, [perfilId]);
 
   useEffect(() => {
-    if (!perfil) return;
+    if (!perfilId) return;
     void fetchOcorrencias(); // eslint-disable-line react-hooks/set-state-in-effect
     const channel = supabase
-      .channel(`rh-ocos-${perfil.id}`)
+      .channel(`rh-ocos-${perfilId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ocorrencias' }, fetchOcorrencias)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [perfil?.id, fetchOcorrencias]);
+  }, [perfilId, fetchOcorrencias]);
 
   const darCiente = async (id) => {
     if (cienteRefs.current[id]) return;
