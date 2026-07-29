@@ -13,7 +13,7 @@ import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
 import { toast } from './utils/toast';
-import { relativeDate, exactDatetime, shortDate, shortDatetime } from './utils/dateUtils';
+import { relativeDate, exactDatetime, shortDatetime } from './utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from './components/StatusBadge';
@@ -346,7 +346,7 @@ export default function GestorDashboard() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div style={{ cursor: 'default' }}>
-                                <div>{oco.data_hora_fim ? shortDatetime(oco.data_hora) : shortDate(oco.data_hora)}</div>
+                                <div>{shortDatetime(oco.data_hora)}</div>
                                 {oco.data_hora_fim && (
                                   <div style={{ fontSize: '0.78rem', color: 'var(--text-sub)', fontWeight: 600 }}>
                                     até {shortDatetime(oco.data_hora_fim)}
