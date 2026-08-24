@@ -124,7 +124,7 @@ export default function RhDashboard() {
   const exportarPDF = () => {
     // Exporta o que está na tela (período + busca (nome/setor) + filtro de status),
     // mas ordenado pela data/hora da ocorrência (não pela data de envio).
-    const filtradas = [...visiveis].sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+    const filtradas = [...visiveis].sort((a, b) => new Date(a.data_hora) - new Date(b.data_hora));
     if (!filtradas.length) { toast('Nenhuma ocorrência com os filtros selecionados.', 'error'); return; }
     try {
       const doc = new jsPDF('landscape');
