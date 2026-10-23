@@ -9,6 +9,8 @@ import { Pagination } from './components/Pagination';
 const PER_PAGE = 15;
 import { useAuthGuard } from './hooks/useAuthGuard';
 import TopBar from './components/TopBar';
+import Mural from './components/Mural';
+import Absenteismo from './components/Absenteismo';
 import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
@@ -225,6 +227,10 @@ export default function RhDashboard() {
             <StatCard icon={<CheckCircle size={20}/>}value={counts.recebidas}    label="Recebidas pelo RH"  color="#059669" bg="#ecfdf5" delay={0.15} onClick={() => toggleFilter('recebido_rh')}    active={filterStatus === 'recebido_rh'} />
           </div>
         </motion.div>
+
+        <Mural perfil={perfil} />
+
+        <Absenteismo ocorrencias={ocorrencias} carregando={loadingData} />
 
         <motion.section variants={containerVariants} initial="hidden" animate="show" className="vision-card">
           <div className="section-header" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>

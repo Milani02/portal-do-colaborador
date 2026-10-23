@@ -7,6 +7,7 @@ import { Pagination } from './components/Pagination';
 const PER_PAGE = 15;
 import { useAuthGuard } from './hooks/useAuthGuard';
 import TopBar from './components/TopBar';
+import Mural from './components/Mural';
 import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
@@ -150,6 +151,8 @@ export default function AdminDashboard() {
             <StatCard icon={<User size={20} />}    value={counts.colaborador} label="Colaboradores"      color="#5c6c24"  bg="#ecfccb" delay={0.25} />
           </div>
         </motion.div>
+
+        <Mural perfil={perfil} />
 
         <motion.section
           variants={containerVariants}

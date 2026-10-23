@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthGuard } from './hooks/useAuthGuard';
 import TopBar from './components/TopBar';
+import Mural from './components/Mural';
 import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants, itemVariantsLight } from './utils/animations';
@@ -312,6 +313,8 @@ export default function ColaboradorDashboard() {
             <StatCard icon="✕"  value={counts.reprovado} label="Reprovadas"      color="#dc2626" bg="#fef2f2" delay={0.20} onClick={() => toggleFilter('reprovado')} active={filterStatus === 'reprovado'} />
           </div>
         </motion.div>
+
+        <Mural perfil={perfil} />
 
         <motion.div className="dashboard-grid" variants={containerVariants} initial="hidden" animate="show">
 

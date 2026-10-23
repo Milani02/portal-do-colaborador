@@ -9,6 +9,7 @@ import { Pagination } from './components/Pagination';
 const PER_PAGE = 15;
 import { useAuthGuard } from './hooks/useAuthGuard';
 import TopBar from './components/TopBar';
+import Mural from './components/Mural';
 import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
@@ -257,6 +258,8 @@ export default function GestorDashboard() {
             <StatCard icon={<XCircle size={20}/>}      value={counts.reprovado} label="Reprovadas"        color="#dc2626" bg="#fef2f2" delay={0.20} onClick={() => toggleFilter('reprovado')} active={filterStatus === 'reprovado'} />
           </div>
         </motion.div>
+
+        <Mural perfil={perfil} />
 
         <motion.section variants={containerVariants} initial="hidden" animate="show" className="vision-card">
           <div className="section-header" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
