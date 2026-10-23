@@ -117,7 +117,7 @@ export default function RhDashboard() {
     const { data, error } = await supabase.storage
       .from('atestados')
       .createSignedUrl(path, 60, { download: true });
-    if (error || !data?.signedUrl) { toast('Não foi possível baixar o atestado.', 'error'); return; }
+    if (error || !data?.signedUrl) { toast('Não foi possível baixar o anexo.', 'error'); return; }
     window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -353,10 +353,10 @@ export default function RhDashboard() {
                                   key={anexo}
                                   type="button"
                                   onClick={() => baixarAtestado(anexo)}
-                                  title="Baixar atestado"
+                                  title="Baixar anexo"
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: 600, color: 'var(--primary)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                                 >
-                                  <Paperclip size={11} /> Baixar atestado{arr.length > 1 ? ` ${i + 1}` : ''}
+                                  <Paperclip size={11} /> Baixar anexo{arr.length > 1 ? ` ${i + 1}` : ''}
                                 </button>
                               ))}
                             </div>

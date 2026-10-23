@@ -626,7 +626,7 @@ export default function ColaboradorDashboard() {
                           {(h.atestados?.length > 0 || h.atestado_url) && (
                             <span
                               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.25rem' }}
-                              title="Atestado enviado — apenas o RH pode baixar"
+                              title="Anexo enviado — apenas o RH pode baixar"
                             >
                               <Paperclip size={11} />
                               {h.atestados?.length > 1 ? `${h.atestados.length} atestados anexados` : 'Atestado anexado'}
