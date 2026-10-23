@@ -254,9 +254,6 @@ export default function Mural({ perfil }) {
   const ativos = comunicados.filter(c => !expirado(c));
   const visiveis = isRh ? [...ativos, ...comunicados.filter(expirado)] : ativos;
 
-  // Sem comunicados, o mural some para quem não publica (não ocupa espaço à toa).
-  if (!isRh && !loading && visiveis.length === 0) return null;
-
   const lista = verTodos ? visiveis : visiveis.slice(0, VISIVEIS_INICIO);
   const anexoAtual = editando?.anexo_path && !removerAnexo ? editando.anexo_nome || 'Anexo' : null;
 
@@ -300,14 +297,26 @@ export default function Mural({ perfil }) {
             </div>
           </div>
         ) : visiveis.length === 0 ? (
-          <div className="mural-vazio">
-            <div className="mural-vazio-chip" aria-hidden="true"><Megaphone size={22} /></div>
-            <p className="mural-vazio-titulo">O mural está vazio</p>
-            <p className="mural-vazio-desc">Publique avisos, mudanças de horário ou documentos. Todos os colaboradores verão aqui, no topo do painel.</p>
-            <Button size="sm" onClick={abrirNovo} className="btn-action-primary gap-1.5" style={{ marginTop: '0.5rem', padding: '0 0.85rem 0 0.7rem' }}>
-              <Plus data-icon="inline-start" />
-              Publicar primeiro comunicado
-            </Button>
+          // Quadro vazio: continua visível para todos, no lugar onde os avisos vão aparecer.
+          <div className="mural-quadro">
+            <div className="mural-vazio">
+              <div className="mural-vazio-chip" aria-hidden="true"><Megaphone size={22} /></div>
+              {isRh ? (
+                <>
+                  <p className="mural-vazio-titulo">O mural está vazio</p>
+                  <p className="mural-vazio-desc">Publique avisos, mudanças de horário ou documentos. Todos os colaboradores verão aqui, no topo do painel.</p>
+                  <Button size="sm" onClick={abrirNovo} className="btn-action-primary gap-1.5" style={{ marginTop: '0.5rem', padding: '0 0.85rem 0 0.7rem' }}>
+                    <Plus data-icon="inline-start" />
+                    Publicar primeiro comunicado
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="mural-vazio-titulo">Nenhum comunicado no momento</p>
+                  <p className="mural-vazio-desc">Quando o RH publicar avisos ou documentos, eles aparecem aqui.</p>
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <div className="mural-quadro">
