@@ -9,6 +9,7 @@ import StatCard from './components/StatCard';
 import { containerVariants, itemVariantsLight } from './utils/animations';
 import { validateMotivo, validateTipoOcorrencia, VALID_TIPOS_OCORRENCIA } from './utils/validation';
 import { toast } from './utils/toast';
+import { fetchAll } from './utils/fetchAll';
 import { relativeDate, exactDatetime } from './utils/dateUtils';
 import { CalendarClock, FileText, Paperclip, Pencil, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -106,11 +107,12 @@ export default function ColaboradorDashboard() {
 
   const fetchHistorico = useCallback(async () => {
     if (!perfilId) return;
-    const { data } = await supabase
+    const { data } = await fetchAll(() => supabase
       .from('ocorrencias')
       .select('*')
       .eq('colaborador_id', perfilId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .order('id'));
     if (data) {
       if (Object.keys(prevStatusRef.current).length > 0) {
         for (const item of data) {

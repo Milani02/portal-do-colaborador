@@ -15,6 +15,7 @@ import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
 import { toast } from './utils/toast';
+import { fetchAll } from './utils/fetchAll';
 import { relativeDate, exactDatetime, shortDatetime } from './utils/dateUtils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,10 +75,11 @@ export default function RhDashboard() {
 
   const fetchOcorrencias = useCallback(async () => {
     if (!perfilId) return;
-    const { data, error } = await supabase
+    const { data, error } = await fetchAll(() => supabase
       .from('ocorrencias')
       .select('*, colaborador:colaborador_id (nome_completo), gestor:gestor_id (nome_completo)')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .order('id'));
     if (error) { toast('Erro ao carregar dados.', 'error'); return; }
     if (data) setOcorrencias(data);
     setLoadingData(false);

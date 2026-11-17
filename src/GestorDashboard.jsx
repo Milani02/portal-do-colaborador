@@ -14,6 +14,7 @@ import LoadingScreen from './components/LoadingScreen';
 import StatCard from './components/StatCard';
 import { containerVariants } from './utils/animations';
 import { toast } from './utils/toast';
+import { fetchAll } from './utils/fetchAll';
 import { normalizeSetor, setorIlikePattern } from './utils/string';
 import { relativeDate, exactDatetime, shortDatetime } from './utils/dateUtils';
 import { Button } from '@/components/ui/button';
@@ -83,14 +84,15 @@ export default function GestorDashboard() {
 
   const fetchOcorrencias = useCallback(async () => {
     if (!perfilSetor) return;
-    const { data, error } = await supabase
+    const { data, error } = await fetchAll(() => supabase
       .from('ocorrencias')
       .select('*, colaborador:profiles!ocorrencias_colaborador_id_fkey (nome_completo)')
       // Comparação resiliente: ignora maiúsculas/minúsculas, acentos e espaços,
       // para o roteamento não quebrar com "Produção" vs "producao" etc.
       // O ILIKE é um pré-filtro amplo; o filtro exato é feito abaixo.
       .ilike('setor', setorIlikePattern(perfilSetor))
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .order('id'));
     if (error) { toast('Erro ao carregar ocorrências.', 'error'); return; }
     const setorAlvo = normalizeSetor(perfilSetor);
     if (data) setOcorrencias(data.filter((o) => normalizeSetor(o.setor) === setorAlvo));
